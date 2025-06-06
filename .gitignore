@@ -1,0 +1,25 @@
+# Flutter
+/build/
+/.dart_tool/
+/.idea/
+/.packages
+/ios/Pods/
+/ios/.symlinks/
+/windows/flutter/ephemeral/
+/linux/flutter/ephemeral/
+/macos/flutter/ephemeral/
+pubspec.lock
+
+# Go
+*.exe
+*.dll
+*.so
+*.db # MUITO IMPORTANTE para ignorar o banco de dados
+vendor/
+
+# Rust
+/target/
+Cargo.lock
+
+# VS Code
+.vscode/
