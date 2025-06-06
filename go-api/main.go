@@ -97,6 +97,7 @@ func startAutoUpdate(interval time.Duration) {
 }
 
 // Esta função é o nosso "middleware" de CORS
+// Adicionei essa função
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Define os cabeçalhos de autorização
@@ -120,7 +121,7 @@ func main() {
 	fmt.Println("Banco de dados inicializado com sucesso!")
 
 	r := mux.NewRouter()
-	r.Use(corsMiddleware)
+	r.Use(corsMiddleware) // Adicionei essa linha
 	r.HandleFunc("/receive-data", handlers.ReceiveCryptoData).Methods("POST")
 	r.HandleFunc("/cryptos", handlers.GetCryptos).Methods("GET")
 
