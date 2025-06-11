@@ -44,9 +44,14 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color corLaranja = Color(0xFFF4A921);
+    final Color corFundoBusca = Colors.grey[850]!;
+        
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meu Portfólio'),
+        backgroundColor: corLaranja,
+        foregroundColor: Colors.black,
       ),
       body: FutureBuilder<List<Crypto>>(
         future: _portfolioFuture,
