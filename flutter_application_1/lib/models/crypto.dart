@@ -10,6 +10,7 @@ class Crypto {
   final String id;
   final String symbol;
   final String name;
+  final String? imageUrl;
   final double currentPrice;
   final int marketCapRank;
   final double priceChangePercentage24h;
@@ -18,6 +19,7 @@ class Crypto {
     required this.id,
     required this.symbol,
     required this.name,
+    required this.imageUrl,
     required this.currentPrice,
     required this.marketCapRank,
     required this.priceChangePercentage24h,
@@ -28,6 +30,7 @@ class Crypto {
         id: json["id"],
         symbol: json["symbol"],
         name: json["name"],
+        imageUrl: json["image"],
         currentPrice: (json["current_price"] as num).toDouble(),
         marketCapRank: json["market_cap_rank"],
         priceChangePercentage24h:

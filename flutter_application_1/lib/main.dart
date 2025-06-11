@@ -1,7 +1,6 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+// import 'screens/home_screen.dart'; // Não precisa mais deste import aqui
+import 'screens/welcome_screen.dart'; // <-- ADICIONE O IMPORT DA NOVA TELA
 
 void main() {
   runApp(const MyApp());
@@ -15,19 +14,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Monitor Cripto',
       theme: ThemeData.dark().copyWith(
-        primaryColor: const Color.fromARGB(255, 59, 244, 2),
-        scaffoldBackgroundColor: Colors.grey[900],
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          backgroundColor: Color.fromARGB(255, 36, 27, 173),
-          titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold, 
-          ),
-        ),
-      ),
-      home: const HomeScreen(),
+        primaryColor: const Color.from(alpha: 1, red: 0.404, green: 0.227, blue: 0.718),
+        
+      ),      
+      home: const WelcomeScreen(),
     );
   }
 }
