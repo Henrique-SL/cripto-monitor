@@ -1,6 +1,5 @@
 # Monitor de Criptomoedas (Trabalho)
 
-> **DEMONSTRAÇÃO EM VÍDEO:** Para uma demonstração do projeto em funcionamento, assista a este vídeo: [COLOQUE O LINK PARA O SEU VÍDEO DO YOUTUBE/GOOGLE DRIVE AQUI]
 
 ## Sobre o Projeto
 
