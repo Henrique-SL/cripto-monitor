@@ -9,7 +9,7 @@ class AnalysisScreen extends StatelessWidget {
 
   // Função que gera a análise da Tendência
   String _getShortTermSentiment() {
-    // Usando NumberFormat para a porcentagem com vírgula
+    
     final formattedChange = NumberFormat.decimalPercentPattern(locale: 'pt_BR', decimalDigits: 2)
         .format(crypto.priceChangePercentage24h / 100);
 
@@ -24,11 +24,11 @@ class AnalysisScreen extends StatelessWidget {
 
   // Função que gera a análise do Potencial Histórico
   String _getHistoricalPotential() {
-    // Formatador para a porcentagem com vírgula
+    
     final numberFormatter = NumberFormat("##0.0#", "pt_BR");
     final athDistance = numberFormatter.format(crypto.athChangePercentage.abs());
     
-    // Formatador customizado para a moeda: símbolo de dólar com padrão BR
+    
     final currencyFormatter = NumberFormat.currency(locale: 'pt_BR', symbol: '\$');
     final formattedAth = currencyFormatter.format(crypto.ath);
 
@@ -41,7 +41,7 @@ class AnalysisScreen extends StatelessWidget {
 
   // Função que gera a análise da Liquidez
   String _getLiquidityAnalysis() {
-    // Formatador customizado para o volume: símbolo de dólar com padrão BR e formato compacto
+    
     final formattedVolume = NumberFormat.compactCurrency(
       locale: 'pt_BR',
       symbol: '\$',

@@ -24,11 +24,11 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   String _formatLargeNumber(double number) {
-    // Usando o formatador customizado para volume
+    
     final formatter = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: '\$',
-      decimalDigits: 0, // Sem decimais para o volume
+      decimalDigits: 0, 
     );
     return formatter.format(number);
   }
@@ -38,13 +38,13 @@ class _DetailScreenState extends State<DetailScreen> {
     final priceChangeColor =
         widget.crypto.priceChangePercentage24h >= 0 ? Colors.green : Colors.red;
 
-    // --- CRIANDO O FORMATADOR CUSTOMIZADO ---
+    // CRIANDO O FORMATADOR CUSTOMIZADO 
     final currencyFormatter = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: '\$',
     );
     
-    // --- FORMATADOR PARA O GRÁFICO ---
+    // FORMATADOR PARA O GRÁFICO 
     final chartTooltipFormatter = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: '\$',
@@ -157,8 +157,7 @@ class _DetailScreenState extends State<DetailScreen> {
                         touchTooltipData: LineTouchTooltipData(
                           getTooltipItems: (touchedSpots) {
                             return touchedSpots.map((spot) {
-                              return LineTooltipItem(
-                                // Aplicando o formatador no tooltip do gráfico
+                              return LineTooltipItem(                                
                                 chartTooltipFormatter.format(spot.y),
                                 const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                               );

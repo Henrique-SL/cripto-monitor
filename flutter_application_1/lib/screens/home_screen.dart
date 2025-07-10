@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
       alertIcon = const SizedBox.shrink();
     }
     
-    // --- CRIANDO O FORMATADOR CUSTOMIZADO ---
+    // CRIANDO O FORMATADOR CUSTOMIZADO
     final currencyFormatter = NumberFormat.currency(
       locale: 'pt_BR', // Usa a formatação brasileira
       symbol: '\$',      // Mas define o símbolo como dólar
@@ -188,14 +188,12 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                // Aplicando o novo formatador
+              Text(                
                 currencyFormatter.format(crypto.currentPrice),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               
-              Text(
-                // A formatação de porcentagem já estava correta
+              Text(                
                 NumberFormat.decimalPercentPattern(locale: 'pt_BR', decimalDigits: 2).format(crypto.priceChangePercentage24h / 100),
                 style: TextStyle(color: priceChangeColor),
               ),
