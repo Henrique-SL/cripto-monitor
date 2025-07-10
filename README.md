@@ -4,7 +4,7 @@ Este é um projeto full-stack de monitoramento de criptomoedas, desenvolvido com
 
 > **DEMONSTRAÇÃO EM VÍDEO:** https://www.youtube.com/watch?v=Am2q5IpKHXk
 
-> **APRESENTAÇÃO FINAL** [Clique aqui para ver a apresentação final do projeto em PDF](C:\dev\cripto-monitor-main\docs\ApresentacaoFinalLP.pdf)
+> **APRESENTAÇÃO FINAL** [Clique aqui para ver a Apresentação Final](./docs/ApresentacaoFinalLP.pdf)
 
 ## Funcionalidades Principais
 
