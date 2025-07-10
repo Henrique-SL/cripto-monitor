@@ -1,73 +1,69 @@
-# Monitor de Criptomoedas (Trabalho)
+# Cripto Monitor & Analysis
 
-> **DEMONSTRAÇÃO EM VÍDEO:** Para uma demonstração do projeto em funcionamento, assista a este vídeo: [COLOQUE O LINK PARA O SEU VÍDEO DO YOUTUBE/GOOGLE DRIVE AQUI]
+Este é um projeto full-stack de monitoramento de criptomoedas, desenvolvido como trabalho acadêmico, que integra um backend em Go, um coletor de dados em Rust e um aplicativo multiplataforma em Flutter.
 
-## Sobre o Projeto
+> **DEMONSTRAÇÃO EM VÍDEO:** https://www.youtube.com/watch?v=Am2q5IpKHXk
 
-Este projeto consiste em um sistema completo para monitoramento de criptomoedas, utilizando uma arquitetura de microsserviços e um aplicativo frontend.
+## Funcionalidades Principais
+
+* **Ranking em Tempo Real:** Lista de criptomoedas obtida da API da CoinGecko, ordenada por capitalização de mercado.
+* **Busca Instantânea:** Filtre a lista de moedas por nome ou símbolo.
+* **Análise Detalhada:** Tela de detalhes para cada moeda com gráfico de preço das últimas 24h, máxima histórica (ATH), volume e outros indicadores.
+* **Análise de Investimento:** Textos gerados dinamicamente que interpretam os indicadores técnicos (tendência, potencial, liquidez) para auxiliar o usuário.
+* **Portfólio Pessoal:** Sistema de favoritos salvo na nuvem com **Firebase Firestore**. As escolhas do usuário são sincronizadas em tempo real entre dispositivos.
+* **Autenticação:** Sistema de login e cadastro de usuários com **Firebase Authentication**, garantindo que cada usuário tenha seu próprio portfólio.
 
 ## Tecnologias Utilizadas
 
-* **Coletor de Dados:** Rust
-* **Backend (API e Orquestrador):** Go
-* **Frontend (Aplicativo):** Dart & Flutter
+* **Backend:** Go (API REST com Gorilla/Mux e persistência com SQLite).
+* **Coletor de Dados:** Rust (responsável pela coleta inicial dos dados).
+* **Frontend:** Dart & Flutter (para Web e Android).
+* **Banco de Dados na Nuvem:** Google Firebase (Firestore para o portfólio e Authentication para login).
 
 ## Pré-requisitos
 
-Para rodar este projeto localmente, é necessário ter o seguinte software instalado e configurado no PATH do sistema:
-
-1.  **Git:** [https://git-scm.com/downloads](https://git-scm.com/downloads)
-2.  **Go (versão 1.21+):** [https://go.dev/dl/](https://go.dev/dl/)
-3.  **Flutter (versão 3.19+):** [https://docs.flutter.dev/get-started/install](https://docs.flutter.dev/get-started/install)
-4.  **Compilador C/C++ (para o Go):** Foi utilizado o **TDM-GCC**, que pode ser baixado aqui: [https://jmeub.github.io/tdm-gcc/](https://jmeub.github.io/tdm-gcc/)
-    * *Durante a instalação do TDM-GCC, é crucial marcar a opção "Add to PATH".*
-
-## Configuração do Ambiente
-
-Após instalar os pré-requisitos, alguns passos manuais de configuração são necessários.
-
-### 1. Conexão Backend-Frontend
-
-O aplicativo Flutter precisa saber o endereço de IP da máquina onde o servidor Go está rodando.
-
-1.  Encontre o endereço IPv4 da máquina do servidor rodando o comando `ipconfig` (no Windows).
-2.  Abra o projeto Flutter e edite o arquivo `lib/services/api_service.dart`.
-3.  Altere a variável `_baseUrl` para o endereço de IP encontrado. Exemplo:
-    ```dart
-    static const String _baseUrl = "[http://192.168.3.10:8080](http://192.168.3.10:8080)";
-    ```
-
-### 2. Firewall
-
-Pode ser necessário criar uma regra de entrada no Firewall do Windows para permitir conexões na porta `8080` (TCP), para que o app Flutter consiga se conectar à API Go.
+Para rodar este projeto, você precisará ter instalado:
+* [Git](https://git-scm.com/)
+* [Go](https://go.dev/dl/) (versão 1.21+)
+* [Flutter](https://docs.flutter.dev/get-started/install) (versão 3.19+)
+* Um compilador C de 64-bits (ex: [TDM-GCC](https://jmeub.github.io/tdm-gcc/))
+* **Conta no Firebase:** É necessário criar um projeto gratuito no [Firebase Console](https://console.firebase.google.com/).
 
 ## Como Rodar o Projeto
 
-O sistema precisa de dois terminais rodando simultaneamente.
+### 1. Configuração do Firebase
+   a. Após criar seu projeto no Firebase, habilite os serviços **Authentication** (com o provedor "E-mail/Senha") e **Firestore Database** (iniciando em "modo de teste").
+   b. Instale as ferramentas de linha de comando: `dart pub global activate flutterfire_cli` e `npm install -g firebase-tools`.
+   c. Na pasta do app Flutter, rode `flutterfire configure` para conectar o projeto ao Firebase.
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone [https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git](https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git)
-    cd SEU_REPOSITORIO
+### 2. Configuração do Frontend (Flutter)
+   a. Na pasta `flutter_application_1`, rode `flutter pub get` para baixar as dependências.
+   b. **MUITO IMPORTANTE:** Abra o arquivo `lib/services/api_service.dart` e altere a variável `_baseUrl` para o endereço de IP da máquina onde o servidor Go estará rodando. Encontre o IP com `ipconfig` (Windows). Ex: `http://192.168.1.10:8080`.
+
+### 3. Execução
+O sistema precisa de **dois terminais rodando simultaneamente**.
+
+* **Terminal 1 - Ligar o Backend (Go):**
+    ```powershell
+    # Navegue até a pasta da API
+    cd go-api
+
+    # Instale as dependências
+    go mod tidy
+
+    # Delete o banco de dados antigo para garantir uma nova criação
+    del cryptos.db
+
+    # Rode o servidor
+    $env:CGO_ENABLED="1"; go run main.go
     ```
+    *Aguarde a mensagem "Servidor iniciado na porta 8080..." e deixe este terminal aberto.*
 
-2.  **Rode o Backend (API em Go):**
-    * Abra um terminal na pasta raiz do projeto.
-    * Navegue para a pasta da API: `cd go-api`
-    * Execute o servidor com o CGO habilitado:
-        ```powershell
-        $env:CGO_ENABLED="1"; go run main.go
-        ```
-    * Aguarde a mensagem "Servidor iniciado na porta 8080..." e **deixe este terminal aberto**.
+* **Terminal 2 - Ligar o Frontend (Flutter):**
+    ```bash
+    # Navegue até a pasta do app
+    cd flutter_application_1
 
-3.  **Rode o Frontend (App em Flutter):**
-    * Abra um **segundo terminal** na pasta raiz do projeto.
-    * Navegue para a pasta do Flutter: `cd nome-da-sua-pasta-flutter`
-    * Instale as dependências do Flutter:
-        ```bash
-        flutter pub get
-        ```
-    * Execute o aplicativo (recomendado para Web para testes rápidos):
-        ```bash
-        flutter run -d chrome
-        ```
+    # Rode o aplicativo (no Chrome, por exemplo)
+    flutter run -d chrome
+    ```

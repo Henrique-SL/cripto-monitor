@@ -24,7 +24,12 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   String _formatLargeNumber(double number) {
-    final formatter = NumberFormat.compactSimpleCurrency(locale: 'pt_BR');
+    // Usando o formatador customizado para volume
+    final formatter = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: '\$',
+      decimalDigits: 0, // Sem decimais para o volume
+    );
     return formatter.format(number);
   }
 
@@ -32,6 +37,19 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget build(BuildContext context) {
     final priceChangeColor =
         widget.crypto.priceChangePercentage24h >= 0 ? Colors.green : Colors.red;
+
+    // --- CRIANDO O FORMATADOR CUSTOMIZADO ---
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: '\$',
+    );
+    
+    // --- FORMATADOR PARA O GRÁFICO ---
+    final chartTooltipFormatter = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: '\$',
+      decimalDigits: 2,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -70,7 +88,7 @@ class _DetailScreenState extends State<DetailScreen> {
             const Divider(color: Colors.white24),
 
             _buildInfoTile('Preço Atual',
-                NumberFormat.simpleCurrency(locale: 'pt_BR').format(widget.crypto.currentPrice)),
+                currencyFormatter.format(widget.crypto.currentPrice)),
             _buildInfoTile('Rank de Mercado', '#${widget.crypto.marketCapRank}'),
             _buildInfoTile('Variação (24h)',
                 NumberFormat.decimalPercentPattern(locale: 'pt_BR', decimalDigits: 2).format(widget.crypto.priceChangePercentage24h / 100),
@@ -87,20 +105,19 @@ class _DetailScreenState extends State<DetailScreen> {
             _buildInfoTile('Volume (24h)',
                 _formatLargeNumber(widget.crypto.totalVolume)),
             _buildInfoTile('Preço Máximo Histórico (ATH)',
-                NumberFormat.simpleCurrency(locale: 'pt_BR').format(widget.crypto.ath)),
+                currencyFormatter.format(widget.crypto.ath)),
             _buildInfoTile('% desde o Máximo Histórico',
                 NumberFormat.decimalPercentPattern(locale: 'pt_BR', decimalDigits: 2).format(widget.crypto.athChangePercentage / 100),
                 valueColor: Colors.red),
             
             const SizedBox(height: 24),
 
-            // BOTÃO COM ESTILO
             Center(
               child: ElevatedButton.icon(
-                icon: const Icon(Icons.lightbulb_outline),
-                label: const Text('Ver Análise de Investimento'),
+                icon: const Icon(Icons.lightbulb_outline, color: Colors.white),
+                label: const Text('Ver Análise de Investimento', style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,                
+                  backgroundColor: Colors.grey[850],
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
@@ -114,7 +131,6 @@ class _DetailScreenState extends State<DetailScreen> {
                 },
               ),
             ),
-            
             
             const SizedBox(height: 24),
             const Divider(color: Colors.white24),
@@ -141,9 +157,9 @@ class _DetailScreenState extends State<DetailScreen> {
                         touchTooltipData: LineTouchTooltipData(
                           getTooltipItems: (touchedSpots) {
                             return touchedSpots.map((spot) {
-                              final currencyFormatter = NumberFormat.simpleCurrency(locale: 'pt_BR', decimalDigits: 2);
                               return LineTooltipItem(
-                                currencyFormatter.format(spot.y),
+                                // Aplicando o formatador no tooltip do gráfico
+                                chartTooltipFormatter.format(spot.y),
                                 const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                               );
                             }).toList();

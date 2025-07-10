@@ -7,7 +7,9 @@ class AnalysisScreen extends StatelessWidget {
 
   const AnalysisScreen({super.key, required this.crypto});
 
+  // Função que gera a análise da Tendência
   String _getShortTermSentiment() {
+    // Usando NumberFormat para a porcentagem com vírgula
     final formattedChange = NumberFormat.decimalPercentPattern(locale: 'pt_BR', decimalDigits: 2)
         .format(crypto.priceChangePercentage24h / 100);
 
@@ -20,24 +22,35 @@ class AnalysisScreen extends StatelessWidget {
     }
   }
 
+  // Função que gera a análise do Potencial Histórico
   String _getHistoricalPotential() {
-    final athDistance = NumberFormat.decimalPercentPattern(locale: 'pt_BR', decimalDigits: 2)
-        .format(crypto.athChangePercentage.abs() / 100);
-    final formattedAth = NumberFormat.simpleCurrency(locale: 'pt_BR').format(crypto.ath);
+    // Formatador para a porcentagem com vírgula
+    final numberFormatter = NumberFormat("##0.0#", "pt_BR");
+    final athDistance = numberFormatter.format(crypto.athChangePercentage.abs());
+    
+    // Formatador customizado para a moeda: símbolo de dólar com padrão BR
+    final currencyFormatter = NumberFormat.currency(locale: 'pt_BR', symbol: '\$');
+    final formattedAth = currencyFormatter.format(crypto.ath);
 
     if (crypto.athChangePercentage > -15) {
-      return "O preço atual está próximo da sua máxima histórica de $formattedAth, a apenas $athDistance de distância. Isso pode indicar uma forte consolidação de valor ou um potencial rompimento para novas máximas.";
+      return "O preço atual está próximo da sua máxima histórica de $formattedAth, a apenas $athDistance% de distância. Isso pode indicar uma forte consolidação de valor ou um potencial rompimento para novas máximas.";
     } else {
-      return "Ainda há um espaço considerável para crescimento. O preço atual está $athDistance abaixo da sua máxima histórica de $formattedAth, sugerindo um bom potencial de valorização caso a tendência de alta retorne.";
+      return "Ainda há um espaço considerável para crescimento. O preço atual está $athDistance% abaixo da sua máxima histórica de $formattedAth, sugerindo um bom potencial de valorização caso a tendência de alta retorne.";
     }
   }
 
+  // Função que gera a análise da Liquidez
   String _getLiquidityAnalysis() {
-    final formattedVolume = NumberFormat.compactSimpleCurrency(locale: 'pt_BR', decimalDigits: 2).format(crypto.totalVolume);
+    // Formatador customizado para o volume: símbolo de dólar com padrão BR e formato compacto
+    final formattedVolume = NumberFormat.compactCurrency(
+      locale: 'pt_BR',
+      symbol: '\$',
+      decimalDigits: 2,
+    ).format(crypto.totalVolume);
 
-    if (crypto.totalVolume > 1000000000) {
-      return "A liquidez é considerada altíssima, com um volume de $formattedVolume nas últimas 24h, facilitando a execução de grandes ordens de compra e venda.";
-    } else if (crypto.totalVolume > 100000000) {
+    if (crypto.totalVolume > 1000000000) { // Acima de 1 bilhão
+      return "A liquidez é considerada altíssima, com um volume de $formattedVolume nas últimas 24h, facilitando a execução de grandes ordens de compra e venda sem impactar significativamente o preço.";
+    } else if (crypto.totalVolume > 100000000) { // Acima de 100 milhões
       return "A liquidez é saudável, com um volume de $formattedVolume nas últimas 24h, permitindo negociações eficientes para a maioria dos investidores.";
     } else {
       return "A liquidez é mais baixa, com um volume de $formattedVolume nas últimas 24h, o que pode resultar em maiores variações de preço ao negociar grandes volumes.";
@@ -101,7 +114,6 @@ class AnalysisScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                // --- ÍCONE COM A COR VERDE DO TEMA ---
                 Icon(icon, color: Theme.of(context).colorScheme.secondary, size: 28),
                 const SizedBox(width: 12),
                 Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
