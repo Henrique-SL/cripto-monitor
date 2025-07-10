@@ -1,8 +1,9 @@
-# Cripto Monitor & Analysis
+# CriptoDuelo
 
 Este é um projeto full-stack de monitoramento de criptomoedas, desenvolvido como trabalho acadêmico, que integra um backend em Go, um coletor de dados em Rust e um aplicativo multiplataforma em Flutter.
 
 > **DEMONSTRAÇÃO EM VÍDEO:** https://www.youtube.com/watch?v=Am2q5IpKHXk
+> **APRESENTAÇÃO FINAL** [Clique aqui para ver a apresentação final do projeto em PDF](./docs/presentacaoFinalLP.pdf)
 
 ## Funcionalidades Principais
 
@@ -67,3 +68,9 @@ O sistema precisa de **dois terminais rodando simultaneamente**.
     # Rode o aplicativo (no Chrome, por exemplo)
     flutter run -d chrome
     ```
+
+### 4. Uso de IA
+Usamos ChatGPT e Gemini
+   a. Estuturação
+   b. Configuração do Go, Dart, Flutter e banco de dados FireBase
+   c. Aprimoramento do código
