@@ -3,6 +3,7 @@
 Este é um projeto full-stack de monitoramento de criptomoedas, desenvolvido como trabalho acadêmico, que integra um backend em Go, um coletor de dados em Rust e um aplicativo multiplataforma em Flutter.
 
 > **DEMONSTRAÇÃO EM VÍDEO:** https://www.youtube.com/watch?v=Am2q5IpKHXk
+
 > **APRESENTAÇÃO FINAL** [Clique aqui para ver a apresentação final do projeto em PDF](./docs/presentacaoFinalLP.pdf)
 
 ## Funcionalidades Principais
@@ -34,11 +35,14 @@ Para rodar este projeto, você precisará ter instalado:
 
 ### 1. Configuração do Firebase
    a. Após criar seu projeto no Firebase, habilite os serviços **Authentication** (com o provedor "E-mail/Senha") e **Firestore Database** (iniciando em "modo de teste").
+
    b. Instale as ferramentas de linha de comando: `dart pub global activate flutterfire_cli` e `npm install -g firebase-tools`.
+
    c. Na pasta do app Flutter, rode `flutterfire configure` para conectar o projeto ao Firebase.
 
 ### 2. Configuração do Frontend (Flutter)
    a. Na pasta `flutter_application_1`, rode `flutter pub get` para baixar as dependências.
+
    b. **MUITO IMPORTANTE:** Abra o arquivo `lib/services/api_service.dart` e altere a variável `_baseUrl` para o endereço de IP da máquina onde o servidor Go estará rodando. Encontre o IP com `ipconfig` (Windows). Ex: `http://192.168.1.10:8080`.
 
 ### 3. Execução
@@ -71,6 +75,9 @@ O sistema precisa de **dois terminais rodando simultaneamente**.
 
 ### 4. Uso de IA
 Usamos ChatGPT e Gemini
+
    a. Estuturação
+
    b. Configuração do Go, Dart, Flutter e banco de dados FireBase
+
    c. Aprimoramento do código
