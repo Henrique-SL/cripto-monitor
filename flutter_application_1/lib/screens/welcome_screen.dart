@@ -1,31 +1,42 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'portfolio_screen.dart';
+import '../services/auth_service.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final AuthService authService = AuthService();
+
     return Scaffold(
-      backgroundColor: Colors.grey[900],
-      body: SafeArea(        
+      backgroundColor: Colors.grey[1500], 
+      appBar: AppBar(
+        title: const Text('Início'),
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sair',
+            onPressed: () async {
+              await authService.signOut();
+            },
+          )
+        ],
+      ),
+      body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [                
+              children: [
                 const SizedBox(height: 40),
-
-                // 1. Logo Principal
-                Image.asset(
-                  'assets/images/1.png',
-                  height: 200,
-                ),
+                Image.asset('assets/images/1.png', height: 200),
                 const SizedBox(height: 48),
 
-                // 2. Botões de Navegação
+                // Botão para o Ranking de Moedas
                 _buildNavButton(
                   context: context,
                   icon: Icons.bar_chart_rounded,
@@ -40,9 +51,10 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 
+                // Botão para o Portfólio
                 _buildNavButton(
                   context: context,
-                  icon: Icons.star_border_rounded,
+                  icon: Icons.star,
                   title: 'Portfólio',
                   subtitle: 'Veja suas moedas favoritas',
                   onTap: () {
@@ -52,24 +64,11 @@ class WelcomeScreen extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 16),
-
-                _buildNavButton(
-                  context: context,
-                  icon: Icons.lightbulb_outline_rounded,
-                  title: 'Análise de Investimento',
-                  subtitle: 'Opinião: é hora de investir?',
-                  onTap: () {},
-                ),                
                 
                 const SizedBox(height: 64),
 
-                // 3. Imagem do Nome na Parte de Baixo
-                Image.asset(
-                  'assets/images/2.png',
-                  height: 60, 
-                ),
-
+                // Imagem do Nome na Parte de Baixo
+                Image.asset('assets/images/2.png', height: 60),
                 const SizedBox(height: 20),
               ],
             ),
@@ -78,7 +77,8 @@ class WelcomeScreen extends StatelessWidget {
       ),
     );
   }
-  
+
+  // Widget auxiliar para criar os botões
   Widget _buildNavButton({
     required BuildContext context,
     required IconData icon,
@@ -87,8 +87,6 @@ class WelcomeScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Card(
-      color: Colors.grey[850],
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -96,7 +94,7 @@ class WelcomeScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20.0),
           child: Row(
             children: [
-              Icon(icon, size: 32, color: Colors.deepPurpleAccent),
+              Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 20),
               Expanded(
                 child: Column(

@@ -1,36 +1,46 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; 
+
 class FavoritesService {
-  static const _favoritesKey = 'favoriteCryptos';
+  final _portfoliosCollection = FirebaseFirestore.instance.collection('portfolios');
+  final FirebaseAuth _auth = FirebaseAuth.instance; // Pega a instância do Auth
 
-  // Pega a lista de IDs de moedas favoritas
-  Future<List<String>> getFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getStringList(_favoritesKey) ?? [];
+  // Pega o ID do usuário atualmente logado. Se não houver, retorna nulo.
+  String? get _userId => _auth.currentUser?.uid;
+
+  // Ouve as mudanças nos favoritos do usuário LOGADO
+  Stream<Set<String>> getFavoritesStream() {
+    final userId = _userId;
+    if (userId == null) {
+      // Se não há usuário logado, retorna um stream vazio.
+      return Stream.value(<String>{});
+    }
+    return _portfoliosCollection.doc(userId).snapshots().map((snapshot) {
+      if (!snapshot.exists || snapshot.data() == null) {
+        return <String>{};
+      }
+      final List<dynamic> favoriteIds = snapshot.data()!['favorite_ids'] ?? [];
+      return favoriteIds.map((id) => id.toString()).toSet();
+    });
   }
 
-  // Adiciona uma moeda aos favoritos
+  // Adiciona um favorito para o usuário LOGADO
   Future<void> addFavorite(String coinId) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> favorites = await getFavorites();
-    if (!favorites.contains(coinId)) {
-      favorites.add(coinId);
-      await prefs.setStringList(_favoritesKey, favorites);
-    }
+    final userId = _userId;
+    if (userId == null) return; // Não faz nada se não houver usuário
+
+    await _portfoliosCollection.doc(userId).set({
+      'favorite_ids': FieldValue.arrayUnion([coinId])
+    }, SetOptions(merge: true));
   }
 
-  // Remove uma moeda dos favoritos
+  // Remove um favorito do usuário LOGADO
   Future<void> removeFavorite(String coinId) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> favorites = await getFavorites();
-    if (favorites.contains(coinId)) {
-      favorites.remove(coinId);
-      await prefs.setStringList(_favoritesKey, favorites);
-    }
-  }
+    final userId = _userId;
+    if (userId == null) return; // Não faz nada se não houver usuário
 
-  // Verifica se uma moeda específica é favorita
-  Future<bool> isFavorite(String coinId) async {
-    List<String> favorites = await getFavorites();
-    return favorites.contains(coinId);
+    await _portfoliosCollection.doc(userId).update({
+      'favorite_ids': FieldValue.arrayRemove([coinId])
+    });
   }
 }

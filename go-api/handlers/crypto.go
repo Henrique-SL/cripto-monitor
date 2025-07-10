@@ -21,7 +21,6 @@ func ReceiveCryptoData(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("Erro ao ler corpo da requisição: %v\n", err)
 		http.Error(w, "Erro ao ler o corpo da requisição", http.StatusBadRequest)
 		return
 	}
@@ -30,31 +29,30 @@ func ReceiveCryptoData(w http.ResponseWriter, r *http.Request) {
 	var dados []models.CryptoData
 	err = json.Unmarshal(body, &dados)
 	if err != nil {
-		log.Printf("Erro ao decodificar JSON: %v\n", err)
 		http.Error(w, "Erro ao decodificar JSON", http.StatusBadRequest)
 		return
 	}
 
 	tx, err := database.DB.Begin()
 	if err != nil {
-		log.Printf("Erro iniciando transação: %v\n", err)
 		http.Error(w, "Erro iniciando transação", http.StatusInternalServerError)
 		return
 	}
 
-	// VERSÃO CORRIGIDA COM 7 COLUNAS E 7 '?'
 	stmt, err := tx.Prepare(`INSERT OR REPLACE INTO crypto
-		(id, symbol, name, image, current_price, market_cap_rank, price_change_percentage_24h)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`)
+		(id, symbol, name, image, current_price, market_cap_rank, price_change_percentage_24h, total_volume, ath, ath_change_percentage)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
-		log.Printf("Erro preparando statement: %v\n", err)
+		tx.Rollback()
 		http.Error(w, "Erro preparando statement", http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
 
 	for _, crypto := range dados {
-		// VERSÃO CORRIGIDA COM 7 ARGUMENTOS
+		// --- LOG NOVO ADICIONADO AQUI ---
+		log.Printf("Tentando inserir: ID=%s, Nome=%s, Imagem=%s", crypto.ID, crypto.Name, crypto.Image)
+
 		_, err = stmt.Exec(
 			crypto.ID,
 			crypto.Symbol,
@@ -63,10 +61,13 @@ func ReceiveCryptoData(w http.ResponseWriter, r *http.Request) {
 			crypto.CurrentPrice,
 			crypto.MarketCapRank,
 			crypto.PriceChangePercentage24h,
+			crypto.TotalVolume,
+			crypto.ATH,
+			crypto.ATHChangePercentage,
 		)
 		if err != nil {
 			tx.Rollback()
-			log.Printf("Erro inserindo dados no banco: %v\n", err)
+			log.Printf("Erro inserindo dados no banco: %v", err)
 			http.Error(w, "Erro inserindo dados no banco", http.StatusInternalServerError)
 			return
 		}
@@ -74,7 +75,6 @@ func ReceiveCryptoData(w http.ResponseWriter, r *http.Request) {
 
 	err = tx.Commit()
 	if err != nil {
-		log.Printf("Erro salvando transação: %v\n", err)
 		http.Error(w, "Erro salvando transação", http.StatusInternalServerError)
 		return
 	}
@@ -84,24 +84,19 @@ func ReceiveCryptoData(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCryptos(w http.ResponseWriter, r *http.Request) {
-	// VERSÃO CORRIGIDA DO SELECT, INCLUINDO 'image'
-	rows, err := database.DB.Query("SELECT id, symbol, name, image, current_price, market_cap_rank, price_change_percentage_24h FROM crypto ORDER BY market_cap_rank ASC")
+	rows, err := database.DB.Query("SELECT id, symbol, name, image, current_price, market_cap_rank, price_change_percentage_24h, total_volume, ath, ath_change_percentage FROM crypto ORDER BY market_cap_rank ASC")
 	if err != nil {
-		log.Printf("Erro ao consultar banco: %v\n", err)
 		http.Error(w, "Erro ao consultar banco", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	// VERSÃO CORRIGIDA PARA EVITAR RETORNO 'null'
 	cryptos := make([]models.CryptoData, 0)
 
 	for rows.Next() {
 		var c models.CryptoData
-		// VERSÃO CORRIGIDA DO SCAN, INCLUINDO '&c.Image'
-		err = rows.Scan(&c.ID, &c.Symbol, &c.Name, &c.Image, &c.CurrentPrice, &c.MarketCapRank, &c.PriceChangePercentage24h)
+		err = rows.Scan(&c.ID, &c.Symbol, &c.Name, &c.Image, &c.CurrentPrice, &c.MarketCapRank, &c.PriceChangePercentage24h, &c.TotalVolume, &c.ATH, &c.ATHChangePercentage)
 		if err != nil {
-			log.Printf("Erro ao ler dados do banco: %v\n", err)
 			http.Error(w, "Erro ao ler dados do banco", http.StatusInternalServerError)
 			return
 		}
@@ -109,7 +104,6 @@ func GetCryptos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = rows.Err(); err != nil {
-		log.Printf("Erro ao iterar resultados do banco: %v\n", err)
 		http.Error(w, "Erro ao iterar resultados do banco", http.StatusInternalServerError)
 		return
 	}
@@ -118,7 +112,6 @@ func GetCryptos(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(cryptos)
 }
 
-// GetMarketChart busca o histórico de mercado de uma cripto específica
 func GetMarketChart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]

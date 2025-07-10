@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -25,10 +26,19 @@ func fetchCryptoPage(page int, perPage int) ([]models.CryptoData, error) {
 	}
 	defer resp.Body.Close()
 
-	var data []models.CryptoData
-	err = json.NewDecoder(resp.Body).Decode(&data)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("erro ao ler o corpo da resposta da API: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("a API da CoinGecko respondeu com o status %s e a mensagem: %s", resp.Status, string(body))
+	}
+
+	var data []models.CryptoData
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao decodificar JSON. A API respondeu com: %s. Erro original: %w", string(body), err)
 	}
 
 	return data, nil
@@ -37,7 +47,7 @@ func fetchCryptoPage(page int, perPage int) ([]models.CryptoData, error) {
 // Função para buscar várias páginas de moedas
 func fetchAllCryptos() ([]models.CryptoData, error) {
 	var allData []models.CryptoData
-	pages := []int{1, 2, 3} // Busca as 3 primeiras páginas (300 moedas)
+	pages := []int{1, 2, 3}
 	perPage := 100
 	for _, p := range pages {
 		data, err := fetchCryptoPage(p, perPage)
@@ -68,16 +78,23 @@ func postCryptoData(data []models.CryptoData) error {
 	return nil
 }
 
-// Versão melhorada que busca os dados imediatamente e depois a cada intervalo
+// Versão com LOGS ADICIONAIS
 func startAutoUpdate(interval time.Duration) {
 	fetchAndPost := func() {
 		log.Println("Buscando dados atualizados das criptomoedas...")
-		// VOLTAMOS A USAR A FUNÇÃO fetchAllCryptos
 		data, err := fetchAllCryptos()
 		if err != nil {
-			log.Println("Erro ao buscar dados:", err)
+			// Mensagem de erro mais clara
+			log.Println("ERRO CRÍTICO AO BUSCAR DADOS:", err)
 			return
 		}
+
+		// --- LOG NOVO ADICIONADO AQUI ---
+		log.Printf("Busca bem-sucedida. %d moedas foram encontradas.", len(data))
+		if len(data) == 0 {
+			log.Println("AVISO: A lista de moedas retornada pela API está vazia.")
+		}
+		// --- FIM DO LOG NOVO ---
 
 		err = postCryptoData(data)
 		if err != nil {

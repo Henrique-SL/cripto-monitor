@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "499577384958",
+    "project_id": "cripto-monitor-app",
+    "storage_bucket": "cripto-monitor-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:499577384958:android:6b608d4cebee51400e5aaf",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7ta6tsH9MonAqkDNyeNs6P55RJAXvUuU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

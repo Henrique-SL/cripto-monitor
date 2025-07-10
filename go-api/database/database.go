@@ -36,9 +36,12 @@ func createTable() {
 		image TEXT,
         current_price REAL,
         market_cap_rank INTEGER,
-        price_change_percentage_24h REAL
-    );
-    `
+        price_change_percentage_24h REAL,
+		total_volume REAL,              
+   		ath REAL,                        
+    	ath_change_percentage REAL      
+    );`
+
 	_, err := DB.Exec(query)
 	if err != nil {
 		log.Fatalf("Erro ao criar tabela crypto: %v\n", err)

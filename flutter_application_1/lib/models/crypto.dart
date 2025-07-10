@@ -1,8 +1,6 @@
-// lib/models/crypto.dart
-
 import 'dart:convert';
 
-// Helper function to convert JSON list to a list of Crypto objects
+
 List<Crypto> cryptoFromJson(String str) =>
     List<Crypto>.from(json.decode(str).map((x) => Crypto.fromJson(x)));
 
@@ -14,6 +12,9 @@ class Crypto {
   final double currentPrice;
   final int marketCapRank;
   final double priceChangePercentage24h;
+  final double totalVolume;
+  final double ath;
+  final double athChangePercentage;
 
   Crypto({
     required this.id,
@@ -23,9 +24,12 @@ class Crypto {
     required this.currentPrice,
     required this.marketCapRank,
     required this.priceChangePercentage24h,
+    required this.totalVolume,
+    required this.ath,
+    required this.athChangePercentage,
   });
 
-  // Factory constructor to create a Crypto instance from a JSON object
+  
   factory Crypto.fromJson(Map<String, dynamic> json) => Crypto(
         id: json["id"],
         symbol: json["symbol"],
@@ -35,5 +39,9 @@ class Crypto {
         marketCapRank: json["market_cap_rank"],
         priceChangePercentage24h:
             (json["price_change_percentage_24h"] as num).toDouble(),
+        totalVolume: (json["total_volume"] as num? ?? 0).toDouble(),
+        ath: (json["ath"] as num? ?? 0).toDouble(),
+        athChangePercentage:
+            (json["ath_change_percentage"] as num? ?? 0).toDouble(),
       );
 }

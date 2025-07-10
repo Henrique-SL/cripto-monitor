@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; 
 import '../models/crypto.dart';
 import '../services/api_service.dart';
-import '../services/favorites_service.dart'; 
+import '../services/favorites_service.dart';
 import 'detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,56 +15,64 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
-  final FavoritesService _favoritesService = FavoritesService(); 
+  final FavoritesService _favoritesService = FavoritesService();
   
   List<Crypto> _allCryptos = [];
   List<Crypto> _filteredCryptos = [];
-  Set<String> _favoriteIds = {}; 
-  
+  Set<String> _favoriteIds = {};
   bool _isLoading = true;
   String _error = '';
 
   final TextEditingController _searchController = TextEditingController();
+  StreamSubscription? _favoritesSubscription;
 
   @override
   void initState() {
     super.initState();
-    _loadFavorites(); 
+    _listenToFavorites();
     _fetchData();
-
     _searchController.addListener(_filterCryptos);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _favoritesSubscription?.cancel();
     super.dispose();
   }
 
-  Future<void> _loadFavorites() async {
-    final favorites = await _favoritesService.getFavorites();
-    setState(() {
-      _favoriteIds = favorites.toSet();
+  void _listenToFavorites() {
+    _favoritesSubscription = _favoritesService.getFavoritesStream().listen((favoritesSet) {
+      if (mounted) {
+        setState(() {
+          _favoriteIds = favoritesSet;
+        });
+      }
     });
   }
 
   Future<void> _fetchData() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _error = '';
     });
     try {
       final cryptos = await _apiService.getCryptoList();
-      setState(() {
-        _allCryptos = cryptos;
-        _filteredCryptos = cryptos;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _allCryptos = cryptos;
+          _filteredCryptos = cryptos;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -76,26 +86,21 @@ class _HomeScreenState extends State<HomeScreen> {
       }).toList();
     });
   }
-  
+
   Future<void> _toggleFavorite(String coinId) async {
-    if (_favoriteIds.contains(coinId)) {
+    final isFavorite = _favoriteIds.contains(coinId);
+    if (isFavorite) {
       await _favoritesService.removeFavorite(coinId);
     } else {
       await _favoritesService.addFavorite(coinId);
-    }    
-    _loadFavorites();
+    }
   }
 
   @override
-  Widget build(BuildContext context) {    
-    const Color corLaranja = Color(0xFFF4A921);
-    final Color corFundoBusca = Colors.grey[850]!;
-
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ranking de Moedas'),
-        backgroundColor: corLaranja,
-        foregroundColor: Colors.black,
       ),
       body: Column(
         children: [
@@ -104,21 +109,14 @@ class _HomeScreenState extends State<HomeScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Buscar por nome...',
-                prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                hintText: 'Buscar por nome ou símbolo...',
+                prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white70),
-                        onPressed: () { _searchController.clear(); },
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => _searchController.clear(),
                       )
                     : null,
-                filled: true,
-                fillColor: corFundoBusca,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
               ),
             ),
           ),
@@ -133,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: const EdgeInsets.only(top: 8),
                           itemCount: _filteredCryptos.length,
                           itemBuilder: (context, index) {
-                            final crypto = _filteredCryptos[index];                            
+                            final crypto = _filteredCryptos[index];
                             final isFavorite = _favoriteIds.contains(crypto.id);
                             return _buildCryptoListTile(crypto, isFavorite);
                           },
@@ -145,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCryptoListTile(Crypto crypto, bool isFavorite) {    
+  Widget _buildCryptoListTile(Crypto crypto, bool isFavorite) {
     final priceChangeColor = crypto.priceChangePercentage24h >= 0 ? Colors.green : Colors.red;
     Widget alertIcon;
     if (crypto.priceChangePercentage24h.abs() > 5) {
@@ -159,23 +157,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return ListTile(
       leading: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [          
-          IconButton(            
-            icon: Icon(isFavorite ? Icons.star : Icons.star_outline),            
+        children: [
+          IconButton(
+            icon: Icon(isFavorite ? Icons.star : Icons.star_outline),
             color: isFavorite ? Colors.amber : Colors.white54,
-            onPressed: () {
-              
-              _toggleFavorite(crypto.id);
-            },
+            onPressed: () => _toggleFavorite(crypto.id),
           ),
           CircleAvatar(
             radius: 20,
-            backgroundColor: Colors.grey[700],
+            backgroundColor: Colors.grey[900],
             backgroundImage: (crypto.imageUrl != null && crypto.imageUrl!.isNotEmpty) ? NetworkImage(crypto.imageUrl!) : null,
             child: (crypto.imageUrl == null || crypto.imageUrl!.isEmpty) ? const Icon(Icons.question_mark, size: 24, color: Colors.white70) : null,
           ),
         ],
-      ),      
+      ),
       title: Text(crypto.name),
       subtitle: Text('Rank: #${crypto.marketCapRank}'),
       trailing: Row(
@@ -187,11 +182,12 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '\$${crypto.currentPrice.toStringAsFixed(2)}',
+                NumberFormat.simpleCurrency(locale: 'pt_BR').format(crypto.currentPrice),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
+              
               Text(
-                '${crypto.priceChangePercentage24h.toStringAsFixed(2)}%',
+                NumberFormat.decimalPercentPattern(locale: 'pt_BR', decimalDigits: 2).format(crypto.priceChangePercentage24h / 100),
                 style: TextStyle(color: priceChangeColor),
               ),
             ],

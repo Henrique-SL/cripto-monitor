@@ -36,8 +36,8 @@ class ApiService {
         
         List<FlSpot> spots = prices.map((pricePoint) {
           return FlSpot(
-            (pricePoint[0] as int).toDouble(), // timestamp
-            (pricePoint[1] as num).toDouble(), // price
+            (pricePoint[0] as int).toDouble(), 
+            (pricePoint[1] as num).toDouble(), 
           );
         }).toList();
       

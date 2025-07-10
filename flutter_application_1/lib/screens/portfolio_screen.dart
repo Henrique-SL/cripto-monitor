@@ -14,94 +14,95 @@ class PortfolioScreen extends StatefulWidget {
 class _PortfolioScreenState extends State<PortfolioScreen> {
   final ApiService _apiService = ApiService();
   final FavoritesService _favoritesService = FavoritesService();
-  late Future<List<Crypto>> _portfolioFuture;
 
-  @override
-  void initState() {
-    super.initState();
-    _portfolioFuture = _loadPortfolio();
-  }
-
-  Future<List<Crypto>> _loadPortfolio() async {
-    // 1. Pega os IDs das moedas favoritas salvas
-    final favoriteIds = await _favoritesService.getFavorites();
-
-    // Se não houver favoritos, retorna uma lista vazia
-    if (favoriteIds.isEmpty) {
-      return [];
-    }
-
-    // 2. Busca a lista completa de moedas da API
-    final allCryptos = await _apiService.getCryptoList();
-
-    // 3. Filtra a lista completa, mantendo apenas os favoritos
-    final portfolioCryptos = allCryptos.where((crypto) {
-      return favoriteIds.contains(crypto.id);
-    }).toList();
-
-    return portfolioCryptos;
+  
+  Future<void> _unfavorite(String coinId) async {
+    await _favoritesService.removeFavorite(coinId);
+    
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color corLaranja = Color(0xFFF4A921);
-    final Color corFundoBusca = Colors.grey[850]!;
-        
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meu Portfólio'),
-        backgroundColor: corLaranja,
-        foregroundColor: Colors.black,
       ),
-      body: FutureBuilder<List<Crypto>>(
-        future: _portfolioFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      
+      body: StreamBuilder<Set<String>>(
+        stream: _favoritesService.getFavoritesStream(),
+        builder: (context, snapshotFavorites) {
+          if (snapshotFavorites.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) {
-            return Center(child: Text('Erro: ${snapshot.error}'));
-          }
-          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            final portfolioCryptos = snapshot.data!;           
-            return ListView.builder(
-              itemCount: portfolioCryptos.length,
-              itemBuilder: (context, index) {
-                final crypto = portfolioCryptos[index];               
-                return _buildCryptoListTile(crypto);
-              },
+          if (!snapshotFavorites.hasData || snapshotFavorites.data!.isEmpty) {
+            return const Center(
+              child: Text(
+                'Você ainda não favoritou nenhuma moeda.\nToque na estrela (⭐) na tela de ranking.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.white70),
+              ),
             );
           }
-          // Se não houver favoritos ou a lista estiver vazia
-          return const Center(
-            child: Text(
-              'Você ainda não adicionou moedas favoritas.\nToque na estrela (⭐) na tela de ranking.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.white70),
-            ),
+
+          final favoriteIds = snapshotFavorites.data!;
+
+          
+          return FutureBuilder<List<Crypto>>(
+            future: _apiService.getCryptoList(), 
+            builder: (context, snapshotCryptos) {
+              if (snapshotCryptos.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshotCryptos.hasError) {
+                return Center(child: Text('Erro ao carregar dados: ${snapshotCryptos.error}'));
+              }
+              if (snapshotCryptos.hasData) {                
+                final portfolioCryptos = snapshotCryptos.data!
+                    .where((crypto) => favoriteIds.contains(crypto.id))
+                    .toList();
+
+                if (portfolioCryptos.isEmpty) {
+                   return const Center(
+                    child: Text(
+                      'Seu portfólio está vazio.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Colors.white70),
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    setState(() {}); 
+                  },
+                  child: ListView.builder(
+                    itemCount: portfolioCryptos.length,
+                    itemBuilder: (context, index) {
+                      final crypto = portfolioCryptos[index];
+                      return _buildCryptoListTile(crypto);
+                    },
+                  ),
+                );
+              }
+              return const Center(child: Text('Nenhuma criptomoeda encontrada.'));
+            },
           );
         },
       ),
     );
   }
 
-  
   Widget _buildCryptoListTile(Crypto crypto) {
     final priceChangeColor = crypto.priceChangePercentage24h >= 0 ? Colors.green : Colors.red;
-  
     return ListTile(
       leading: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.star),
+            icon: const Icon(Icons.star), 
             color: Colors.amber,
-            onPressed: () async {              
-              await _favoritesService.removeFavorite(crypto.id);
-              setState(() {
-                _portfolioFuture = _loadPortfolio();
-              });
-            },
+            onPressed: () => _unfavorite(crypto.id),
           ),
           CircleAvatar(
             radius: 20,
@@ -117,26 +118,15 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            '\$${crypto.currentPrice.toStringAsFixed(2)}',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(
-            '${crypto.priceChangePercentage24h.toStringAsFixed(2)}%',
-            style: TextStyle(color: priceChangeColor),
-          ),
+          Text('\$${crypto.currentPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text('${crypto.priceChangePercentage24h.toStringAsFixed(2)}%', style: TextStyle(color: priceChangeColor)),
         ],
       ),
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => DetailScreen(crypto: crypto)),
-        ).then((_) {      
-          
-          setState(() {
-            _portfolioFuture = _loadPortfolio();
-          });
-        });
+        ).then((_) => setState(() {})); 
       },
     );
   }
